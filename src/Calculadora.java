@@ -47,16 +47,18 @@ public class Calculadora {
         iniciarNovaEntrada = true;
     }
 
-    public void calcularResultado() {
-        if (entrada.equals("Erro") || operacaoPendente == '\0' || iniciarNovaEntrada) return;
+    public String calcularResultado() {
+        if (entrada.equals("Erro") || operacaoPendente == '\0' || iniciarNovaEntrada) return null;
+        String expressao = formatar(valorGuardado) + " " + simbolo(operacaoPendente) + " " + entrada;
         double resultado = executar(valorGuardado, lerEntrada(), operacaoPendente);
         if (Double.isNaN(resultado)) {
             mostrarErro();
-            return;
+            return null;
         }
         entrada = formatar(resultado);
         operacaoPendente = '\0';
         iniciarNovaEntrada = true;
+        return expressao + " = " + entrada;
     }
 
     public void limpar() {
@@ -100,6 +102,14 @@ public class Calculadora {
             case '*': return primeiro * segundo;
             case '/': return segundo == 0 ? Double.NaN : primeiro / segundo;
             default: return segundo;
+        }
+    }
+
+    private String simbolo(char operacao) {
+        switch (operacao) {
+            case '*': return "×";
+            case '/': return "÷";
+            default: return Character.toString(operacao);
         }
     }
 
