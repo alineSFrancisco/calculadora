@@ -3,12 +3,17 @@ import java.util.Locale;
 /** Guarda os valores e executa as operações da calculadora. */
 public class Calculadora {
     private String entrada = "0";
+    private String expressao = "";
     private double valorGuardado;
     private char operacaoPendente;
     private boolean iniciarNovaEntrada = true;
 
     public String getVisor() {
         return entrada;
+    }
+
+    public String getExpressao() {
+        return expressao;
     }
 
     public void digitar(String digito) {
@@ -19,6 +24,7 @@ public class Calculadora {
         } else if (entrada.length() < 14) {
             entrada += digito;
         }
+        atualizarExpressaoEntrada();
     }
 
     public void digitarPonto() {
@@ -29,6 +35,7 @@ public class Calculadora {
         } else if (!entrada.contains(".")) {
             entrada += ".";
         }
+        atualizarExpressaoEntrada();
     }
 
     public void escolherOperacao(char operacao) {
@@ -45,24 +52,28 @@ public class Calculadora {
         valorGuardado = atual;
         operacaoPendente = operacao;
         iniciarNovaEntrada = true;
+        expressao = formatar(valorGuardado) + " " + simbolo(operacao);
     }
 
     public String calcularResultado() {
         if (entrada.equals("Erro") || operacaoPendente == '\0' || iniciarNovaEntrada) return null;
-        String expressao = formatar(valorGuardado) + " " + simbolo(operacaoPendente) + " " + entrada;
-        double resultado = executar(valorGuardado, lerEntrada(), operacaoPendente);
+        double segundoValor = lerEntrada();
+        String conta = expressaoDaOperacao(valorGuardado, segundoValor, operacaoPendente);
+        double resultado = executar(valorGuardado, segundoValor, operacaoPendente);
         if (Double.isNaN(resultado)) {
             mostrarErro();
             return null;
         }
         entrada = formatar(resultado);
+        expressao = conta + " =";
         operacaoPendente = '\0';
         iniciarNovaEntrada = true;
-        return expressao + " = " + entrada;
+        return expressao + " " + entrada;
     }
 
     public void limpar() {
         entrada = "0";
+        expressao = "";
         valorGuardado = 0;
         operacaoPendente = '\0';
         iniciarNovaEntrada = true;
@@ -77,11 +88,13 @@ public class Calculadora {
         iniciarNovaEntrada = false;
         entrada = entrada.length() > 1 ? entrada.substring(0, entrada.length() - 1) : "0";
         if (entrada.equals("-")) entrada = "0";
+        atualizarExpressaoEntrada();
     }
 
     public void inverterSinal() {
         if (!entrada.equals("Erro") && !entrada.equals("0")) {
             entrada = entrada.startsWith("-") ? entrada.substring(1) : "-" + entrada;
+            atualizarExpressaoEntrada();
         }
     }
 
@@ -89,6 +102,22 @@ public class Calculadora {
         if (entrada.equals("Erro")) return;
         entrada = formatar(lerEntrada() / 100);
         iniciarNovaEntrada = true;
+        atualizarExpressaoEntrada();
+    }
+
+    private void atualizarExpressaoEntrada() {
+        if (entrada.equals("Erro")) {
+            expressao = "";
+        } else if (operacaoPendente != '\0') {
+            expressao = formatar(valorGuardado) + " " + simbolo(operacaoPendente)
+                    + (iniciarNovaEntrada ? "" : " " + entrada);
+        } else {
+            expressao = entrada;
+        }
+    }
+
+    private String expressaoDaOperacao(double primeiro, double segundo, char operacao) {
+        return formatar(primeiro) + " " + simbolo(operacao) + " " + formatar(segundo);
     }
 
     private double lerEntrada() {

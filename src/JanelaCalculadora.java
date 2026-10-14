@@ -7,8 +7,8 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -37,10 +37,12 @@ public class JanelaCalculadora extends JFrame {
 
     private final Calculadora calculadora = new Calculadora();
     private final JTextField visor = new JTextField("0");
+    private final JLabel expressaoVisor = new JLabel(" ", SwingConstants.RIGHT);
     private final Map<String, TeclaArredondada> botoes = new HashMap<>();
     private final Map<String, Color> coresNormais = new HashMap<>();
-    private final JPanel listaHistorico = new JPanel();
-    private final JLabel mensagemHistorico = new JLabel("Suas contas recentes aparecerão aqui.");
+    private final JPanel listaHistorico = new ListaHistoricoPanel();
+    private final JLabel mensagemHistorico = new JLabel(
+            "<html><div style='width:150px'>Suas contas recentes aparecerão aqui</div></html>");
 
     public JanelaCalculadora() {
         super("Calculadora Neon");
@@ -62,11 +64,11 @@ public class JanelaCalculadora extends JFrame {
         JLabel titulo = new JLabel("CALCULADORA");
         titulo.setFont(new Font("SansSerif", Font.BOLD, 22));
         titulo.setForeground(TEXTO);
-        JLabel status = new JLabel("●  READY");
+        /**JLabel status = new JLabel("●  READY");
         status.setFont(new Font("Monospaced", Font.BOLD, 11));
-        status.setForeground(new Color(119, 237, 200));
+        status.setForeground(new Color(119, 237, 200));*/
         cabecalho.add(titulo, BorderLayout.WEST);
-        cabecalho.add(status, BorderLayout.EAST);
+        //cabecalho.add(status, BorderLayout.EAST);
 
         JPanel area = new JPanel(new BorderLayout(22, 0));
         area.setOpaque(false);
@@ -86,9 +88,8 @@ public class JanelaCalculadora extends JFrame {
 
         JPanel visorPainel = new JPanel(new BorderLayout(0, 10));
         visorPainel.setOpaque(false);
-        /**JLabel legenda = new JLabel("DISPLAY");*/
-        /**legenda.setFont(new Font("Monospaced", Font.BOLD, 11));*/
-        /**legenda.setForeground(TEXTO_SUAVE);*/
+        expressaoVisor.setFont(new Font("SansSerif", Font.PLAIN, 19));
+        expressaoVisor.setForeground(TEXTO_SUAVE);
         visor.setEditable(false);
         visor.setFocusable(false);
         visor.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -97,8 +98,11 @@ public class JanelaCalculadora extends JFrame {
         visor.setCaretColor(TEXTO);
         visor.setOpaque(false);
         visor.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-        /**visorPainel.add(legenda, BorderLayout.NORTH);*/
-        visorPainel.add(visor, BorderLayout.CENTER);
+        JPanel valoresVisor = new JPanel(new BorderLayout(0, 4));
+        valoresVisor.setOpaque(false);
+        valoresVisor.add(expressaoVisor, BorderLayout.NORTH);
+        valoresVisor.add(visor, BorderLayout.CENTER);
+        visorPainel.add(valoresVisor, BorderLayout.CENTER);
 
         JPanel teclado = new JPanel(new GridLayout(5, 4, 11, 11));
         teclado.setOpaque(false);
@@ -164,6 +168,7 @@ public class JanelaCalculadora extends JFrame {
         JScrollPane rolagem = new JScrollPane(listaHistorico);
         rolagem.setBorder(null);
         rolagem.setOpaque(false);
+        rolagem.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         rolagem.getViewport().setOpaque(false);
         rolagem.getVerticalScrollBar().setUnitIncrement(14);
         rolagem.getVerticalScrollBar().setOpaque(false);
@@ -229,11 +234,12 @@ public class JanelaCalculadora extends JFrame {
         JPanel item = new PainelVidro(16);
         item.setLayout(new BorderLayout());
         item.setBorder(BorderFactory.createEmptyBorder(12, 13, 12, 13));
-        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-        JLabel expressao = new JLabel("<html><div style='width:190px'>" + conta + "</div></html>");
+        JLabel expressao = new JLabel("<html><div style='width:155px'>" + conta + "</div></html>");
         expressao.setFont(new Font("SansSerif", Font.PLAIN, 14));
         expressao.setForeground(new Color(207, 204, 231));
         item.add(expressao, BorderLayout.CENTER);
+        // Deixa o cartão crescer quando a expressão quebra em várias linhas.
+        item.setMaximumSize(new Dimension(Integer.MAX_VALUE, item.getPreferredSize().height));
         listaHistorico.add(item, 0);
         listaHistorico.add(javax.swing.Box.createRigidArea(new Dimension(0, 10)), 1);
         listaHistorico.revalidate();
@@ -311,6 +317,8 @@ public class JanelaCalculadora extends JFrame {
 
     private void atualizarVisor() {
         visor.setText(calculadora.getVisor());
+        String expressao = calculadora.getExpressao();
+        expressaoVisor.setText(expressao.isEmpty() ? " " : expressao);
     }
 
     /** Fundo decorativo com gradiente e manchas de luz neon. */
@@ -354,6 +362,15 @@ public class JanelaCalculadora extends JFrame {
             g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, raio, raio);
             g.dispose();
             super.paintComponent(grafico);
+        }
+    }
+
+    /** Mantém a lista estreita e deixa sua altura acompanhar a quantidade de itens. */
+    private static class ListaHistoricoPanel extends JPanel {
+        @Override
+        public Dimension getPreferredSize() {
+            Dimension tamanho = super.getPreferredSize();
+            return new Dimension(185, tamanho.height);
         }
     }
 
